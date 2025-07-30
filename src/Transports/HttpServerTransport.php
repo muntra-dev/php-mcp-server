@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace PhpMcp\Server\Transports;
 
+require_once __DIR__ . '/../Utils/StringPolyfills.php';
+
 use Evenement\EventEmitterTrait;
 use PhpMcp\Server\Contracts\LoggerAwareInterface;
 use PhpMcp\Server\Contracts\LoopAwareInterface;

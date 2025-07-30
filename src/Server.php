@@ -25,9 +25,29 @@ use Throwable;
  */
 class Server
 {
-    protected bool $discoveryRan = false;
+    protected $discoveryRan = false;
 
-    protected bool $isListening = false;
+    protected $isListening = false;
+
+    /**
+     * @var Configuration Core configuration and dependencies.
+     */
+    protected $configuration;
+
+    /**
+     * @var Registry Holds registered MCP element definitions.
+     */
+    protected $registry;
+
+    /**
+     * @var Protocol Handles MCP requests and responses.
+     */
+    protected $protocol;
+
+    /**
+     * @var SessionManager
+     */
+    protected $sessionManager;
 
     /**
      *  @internal Use ServerBuilder::make()->...->build().
@@ -35,13 +55,18 @@ class Server
      * @param  Configuration  $configuration  Core configuration and dependencies.
      * @param  Registry  $registry  Holds registered MCP element definitions.
      * @param  Protocol  $protocol  Handles MCP requests and responses.
+     * @param  SessionManager  $sessionManager
      */
     public function __construct(
-        protected readonly Configuration $configuration,
-        protected readonly Registry $registry,
-        protected readonly Protocol $protocol,
-        protected readonly SessionManager $sessionManager,
+        Configuration $configuration,
+        Registry $registry,
+        Protocol $protocol,
+        SessionManager $sessionManager
     ) {
+        $this->configuration = $configuration;
+        $this->registry = $registry;
+        $this->protocol = $protocol;
+        $this->sessionManager = $sessionManager;
     }
 
     public static function make(): ServerBuilder

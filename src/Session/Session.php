@@ -21,13 +21,26 @@ class Session implements SessionInterface
      * - message_queue: array<string>
      * - log_level: string|null
      */
-    protected array $data = [];
+    protected $data = [];
+
+    /**
+     * @var SessionHandlerInterface
+     */
+    protected $handler;
+
+    /**
+     * @var string
+     */
+    protected $id;
 
     public function __construct(
-        protected SessionHandlerInterface $handler,
-        protected string $id = '',
-        ?array $data = null
+        SessionHandlerInterface $handler,
+        $id = '',
+        $data = null
     ) {
+        $this->handler = $handler;
+        $this->id = $id;
+        
         if (empty($this->id)) {
             $this->id = $this->generateId();
         }

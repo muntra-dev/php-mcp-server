@@ -6,10 +6,22 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class Context
 {
+    /**
+     * @var SessionInterface
+     */
+    public $session;
+
+    /**
+     * @var ServerRequestInterface|null
+     */
+    public $request;
+
     public function __construct(
-        public readonly SessionInterface $session,
-        public readonly ?ServerRequestInterface $request = null,
+        SessionInterface $session,
+        $request = null
     )
     {
+        $this->session = $session;
+        $this->request = $request;
     }
 }

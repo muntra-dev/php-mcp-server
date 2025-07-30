@@ -17,16 +17,52 @@ class SessionManager implements EventEmitterInterface
 {
     use EventEmitterTrait;
 
-    protected ?TimerInterface $gcTimer = null;
+    /**
+     * @var TimerInterface|null
+     */
+    protected $gcTimer = null;
+
+    /**
+     * @var SessionHandlerInterface
+     */
+    protected $handler;
+
+    /**
+     * @var LoggerInterface
+     */
+    protected $logger;
+
+    /**
+     * @var LoopInterface|null
+     */
+    protected $loop;
+
+    /**
+     * @var int
+     */
+    protected $ttl;
+
+    /**
+     * @var int|float
+     */
+    protected $gcInterval;
 
     public function __construct(
-        protected SessionHandlerInterface $handler,
-        protected LoggerInterface $logger,
-        protected ?LoopInterface $loop = null,
-        protected int $ttl = 3600,
-        protected int|float $gcInterval = 300
+        SessionHandlerInterface $handler,
+        LoggerInterface $logger,
+        $loop = null,
+        $ttl = 3600,
+        $gcInterval = 300
     ) {
-        $this->loop ??= Loop::get();
+        $this->handler = $handler;
+        $this->logger = $logger;
+        $this->loop = $loop;
+        $this->ttl = $ttl;
+        $this->gcInterval = $gcInterval;
+        
+        if ($this->loop === null) {
+            $this->loop = Loop::get();
+        }
     }
 
     /**

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace PhpMcp\Server\Elements;
 
+require_once __DIR__ . '/../Utils/StringPolyfills.php';
+
+use InvalidArgumentException;
 use PhpMcp\Schema\Content\BlobResourceContents;
 use PhpMcp\Schema\Content\EmbeddedResource;
 use PhpMcp\Schema\Content\ResourceContents;
@@ -99,7 +102,7 @@ class RegisteredResource extends RegisteredElement
             }
 
             if ($allAreEmbeddedResource && $hasEmbeddedResource) {
-                return array_map(fn($item) => $item->resource, $readResult);
+                return array_map(function($item) { return $item->resource; }, $readResult);
             }
 
             if ($hasResourceContents || $hasEmbeddedResource) {

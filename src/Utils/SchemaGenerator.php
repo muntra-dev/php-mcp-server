@@ -1,6 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PhpMcp\Server\Utils;
+
+require_once __DIR__ . '/StringPolyfills.php';
 
 use phpDocumentor\Reflection\DocBlock\Tags\Param;
 use PhpMcp\Server\Attributes\Schema;

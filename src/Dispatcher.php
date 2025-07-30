@@ -46,19 +46,53 @@ use Throwable;
 
 class Dispatcher
 {
-    protected ContainerInterface $container;
-    protected LoggerInterface $logger;
+    /**
+     * @var ContainerInterface
+     */
+    protected $container;
+    
+    /**
+     * @var LoggerInterface
+     */
+    protected $logger;
+
+    /**
+     * @var Configuration
+     */
+    protected $configuration;
+
+    /**
+     * @var Registry
+     */
+    protected $registry;
+
+    /**
+     * @var SubscriptionManager
+     */
+    protected $subscriptionManager;
+
+    /**
+     * @var SchemaValidator|null
+     */
+    protected $schemaValidator;
 
     public function __construct(
-        protected Configuration $configuration,
-        protected Registry $registry,
-        protected SubscriptionManager $subscriptionManager,
-        protected ?SchemaValidator $schemaValidator = null,
+        Configuration $configuration,
+        Registry $registry,
+        SubscriptionManager $subscriptionManager,
+        $schemaValidator = null
     ) {
+        $this->configuration = $configuration;
+        $this->registry = $registry;
+        $this->subscriptionManager = $subscriptionManager;
+        $this->schemaValidator = $schemaValidator;
+        
         $this->container = $this->configuration->container;
         $this->logger = $this->configuration->logger;
 
-        $this->schemaValidator ??= new SchemaValidator($this->logger);
+        if ($this->schemaValidator === null) {
+            $this->schemaValidator = new SchemaValidator($this->logger);
+        }
     }
 
     public function handleRequest(Request $request, Context $context): Result

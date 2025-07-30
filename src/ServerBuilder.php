@@ -473,11 +473,14 @@ final class ServerBuilder
         }
 
         // Create handler based on driver
-        return match ($this->sessionDriver) {
-            'array' => new ArraySessionHandler($this->sessionTtl ?? 3600),
-            'cache' => $this->createCacheSessionHandler(),
-            default => throw new ConfigurationException("Unsupported session driver: {$this->sessionDriver}")
-        };
+        switch ($this->sessionDriver) {
+            case 'array':
+                return new ArraySessionHandler($this->sessionTtl ?? 3600);
+            case 'cache':
+                return $this->createCacheSessionHandler();
+            default:
+                throw new ConfigurationException("Unsupported session driver: {$this->sessionDriver}");
+        }
     }
 
     /**

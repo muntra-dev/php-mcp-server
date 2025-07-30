@@ -15,6 +15,7 @@ use PhpMcp\Server\Elements\RegisteredResource;
 use PhpMcp\Server\Elements\RegisteredResourceTemplate;
 use PhpMcp\Server\Elements\RegisteredTool;
 use PhpMcp\Server\Exception\DefinitionException;
+use PhpMcp\Server\Session\SessionManager;
 use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
 use Psr\SimpleCache\InvalidArgumentException as CacheInvalidArgumentException;
@@ -27,30 +28,50 @@ class Registry implements EventEmitterInterface
     private const DISCOVERED_ELEMENTS_CACHE_KEY = 'mcp_server_discovered_elements';
 
     /** @var array<string, RegisteredTool> */
-    private array $tools = [];
+    private $tools = [];
 
     /** @var array<string, RegisteredResource> */
-    private array $resources = [];
+    private $resources = [];
 
     /** @var array<string, RegisteredPrompt> */
-    private array $prompts = [];
+    private $prompts = [];
 
     /** @var array<string, RegisteredResourceTemplate> */
-    private array $resourceTemplates = [];
+    private $resourceTemplates = [];
 
-    private array $listHashes = [
+    private $listHashes = [
         'tools' => '',
         'resources' => '',
         'resource_templates' => '',
         'prompts' => '',
     ];
 
-    private bool $notificationsEnabled = true;
+    private $notificationsEnabled = true;
+
+    /**
+     * @var LoggerInterface
+     */
+    protected $logger;
+
+    /**
+     * @var CacheInterface|null
+     */
+    protected $cache;
+
+    /**
+     * @var SessionManager|null
+     */
+    protected $sessionManager;
 
     public function __construct(
-        protected LoggerInterface $logger,
-        protected ?CacheInterface $cache = null,
+        LoggerInterface $logger,
+        $cache = null,
+        $sessionManager = null
     ) {
+        $this->logger = $logger;
+        $this->cache = $cache;
+        $this->sessionManager = $sessionManager;
+        
         $this->load();
         $this->computeAllHashes();
     }
@@ -418,7 +439,7 @@ class Registry implements EventEmitterInterface
     }
 
     /** @return RegisteredResource|RegisteredResourceTemplate|null */
-    public function getResource(string $uri, bool $includeTemplates = true): RegisteredResource|RegisteredResourceTemplate|null
+    public function getResource(string $uri, bool $includeTemplates = true)
     {
         $registration = $this->resources[$uri] ?? null;
         if ($registration) {
@@ -453,26 +474,26 @@ class Registry implements EventEmitterInterface
     }
 
     /** @return array<string, Tool> */
-    public function getTools(): array
+    public function getTools()
     {
-        return array_map(fn($tool) => $tool->schema, $this->tools);
+        return array_map(function($tool) { return $tool->schema; }, $this->tools);
     }
 
     /** @return array<string, Resource> */
-    public function getResources(): array
+    public function getResources()
     {
-        return array_map(fn($resource) => $resource->schema, $this->resources);
+        return array_map(function($resource) { return $resource->schema; }, $this->resources);
     }
 
     /** @return array<string, Prompt> */
-    public function getPrompts(): array
+    public function getPrompts()
     {
-        return array_map(fn($prompt) => $prompt->schema, $this->prompts);
+        return array_map(function($prompt) { return $prompt->schema; }, $this->prompts);
     }
 
     /** @return array<string, ResourceTemplate> */
-    public function getResourceTemplates(): array
+    public function getResourceTemplates()
     {
-        return array_map(fn($template) => $template->schema, $this->resourceTemplates);
+        return array_map(function($template) { return $template->schema; }, $this->resourceTemplates);
     }
 }

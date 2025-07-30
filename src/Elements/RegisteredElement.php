@@ -19,19 +19,32 @@ use TypeError;
 
 class RegisteredElement implements JsonSerializable
 {
-    /** @var callable|array|string */
-    public readonly mixed $handler;
-    public readonly bool $isManual;
+    /** 
+     * @var callable|array|string 
+     */
+    public $handler;
+    
+    /**
+     * @var bool
+     */
+    public $isManual;
 
+    /**
+     * @param callable|array|string $handler
+     * @param bool $isManual
+     */
     public function __construct(
-        callable|array|string $handler,
-        bool $isManual = false,
+        $handler,
+        $isManual = false
     ) {
         $this->handler = $handler;
         $this->isManual = $isManual;
     }
 
-    public function handle(ContainerInterface $container, array $arguments, Context $context): mixed
+    /**
+     * @return mixed
+     */
+    public function handle(ContainerInterface $container, $arguments, Context $context)
     {
         if (is_string($this->handler)) {
             if (class_exists($this->handler) && method_exists($this->handler, '__invoke')) {
@@ -190,14 +203,23 @@ class RegisteredElement implements JsonSerializable
         }
 
         try {
-            return match (strtolower($typeName)) {
-                'int', 'integer' => $this->castToInt($argument),
-                'string' => (string) $argument,
-                'bool', 'boolean' => $this->castToBoolean($argument),
-                'float', 'double' => $this->castToFloat($argument),
-                'array' => $this->castToArray($argument),
-                default => $argument,
-            };
+            switch (strtolower($typeName)) {
+                case 'int':
+                case 'integer':
+                    return $this->castToInt($argument);
+                case 'string':
+                    return (string) $argument;
+                case 'bool':
+                case 'boolean':
+                    return $this->castToBoolean($argument);
+                case 'float':
+                case 'double':
+                    return $this->castToFloat($argument);
+                case 'array':
+                    return $this->castToArray($argument);
+                default:
+                    return $argument;
+            }
         } catch (TypeError $e) {
             throw new InvalidArgumentException(
                 "Value cannot be cast to required type `{$typeName}`.",

@@ -40,29 +40,72 @@ class Protocol
     public const LATEST_PROTOCOL_VERSION = '2025-03-26';
     public const SUPPORTED_PROTOCOL_VERSIONS = [self::LATEST_PROTOCOL_VERSION, '2024-11-05'];
 
-    protected ?ServerTransportInterface $transport = null;
+    /**
+     * @var ServerTransportInterface|null
+     */
+    protected $transport = null;
 
-    protected LoggerInterface $logger;
+    /**
+     * @var LoggerInterface
+     */
+    protected $logger;
+
+    /**
+     * @var Configuration
+     */
+    protected $configuration;
+
+    /**
+     * @var Registry
+     */
+    protected $registry;
+
+    /**
+     * @var SessionManager
+     */
+    protected $sessionManager;
+
+    /**
+     * @var Dispatcher|null
+     */
+    protected $dispatcher;
+
+    /**
+     * @var SubscriptionManager|null
+     */
+    protected $subscriptionManager;
 
     /** Stores listener references for proper removal */
-    protected array $listeners = [];
+    protected $listeners = [];
 
     public function __construct(
-        protected Configuration $configuration,
-        protected Registry $registry,
-        protected SessionManager $sessionManager,
-        protected ?Dispatcher $dispatcher = null,
-        protected ?SubscriptionManager $subscriptionManager = null,
+        Configuration $configuration,
+        Registry $registry,
+        SessionManager $sessionManager,
+        $dispatcher = null,
+        $subscriptionManager = null
     ) {
+        $this->configuration = $configuration;
+        $this->registry = $registry;
+        $this->sessionManager = $sessionManager;
+        $this->dispatcher = $dispatcher;
+        $this->subscriptionManager = $subscriptionManager;
+        
         $this->logger = $this->configuration->logger;
-        $this->subscriptionManager ??= new SubscriptionManager($this->logger);
-        $this->dispatcher ??= new Dispatcher($this->configuration, $this->registry, $this->subscriptionManager);
+        
+        if ($this->subscriptionManager === null) {
+            $this->subscriptionManager = new SubscriptionManager($this->logger);
+        }
+        
+        if ($this->dispatcher === null) {
+            $this->dispatcher = new Dispatcher($this->configuration, $this->registry, $this->subscriptionManager);
+        }
 
-        $this->sessionManager->on('session_deleted', function (string $sessionId) {
+        $this->sessionManager->on('session_deleted', function ($sessionId) {
             $this->subscriptionManager->cleanupSession($sessionId);
         });
 
-        $this->registry->on('list_changed', function (string $listType) {
+        $this->registry->on('list_changed', function ($listType) {
             $this->handleListChanged($listType);
         });
     }
@@ -440,13 +483,23 @@ class Protocol
             return;
         }
 
-        $notification = match ($listType) {
-            'resources' => ResourceListChangedNotification::make(),
-            'tools' => ToolListChangedNotification::make(),
-            'prompts' => PromptListChangedNotification::make(),
-            'roots' => RootsListChangedNotification::make(),
-            default => throw new \InvalidArgumentException("Invalid list type: {$listType}"),
-        };
+        $notification = null;
+        switch ($listType) {
+            case 'resources':
+                $notification = ResourceListChangedNotification::make();
+                break;
+            case 'tools':
+                $notification = ToolListChangedNotification::make();
+                break;
+            case 'prompts':
+                $notification = PromptListChangedNotification::make();
+                break;
+            case 'roots':
+                $notification = RootsListChangedNotification::make();
+                break;
+            default:
+                throw new \InvalidArgumentException("Invalid list type: {$listType}");
+        }
 
         if (!$this->canSendNotification($notification->method)) {
             return;

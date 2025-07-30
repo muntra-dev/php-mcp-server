@@ -19,6 +19,46 @@ use React\EventLoop\LoopInterface;
 class Configuration
 {
     /**
+     * @var Implementation Info about this MCP server application.
+     */
+    public $serverInfo;
+
+    /**
+     * @var ServerCapabilities Capabilities of this MCP server application.
+     */
+    public $capabilities;
+
+    /**
+     * @var LoggerInterface PSR-3 Logger instance.
+     */
+    public $logger;
+
+    /**
+     * @var LoopInterface ReactPHP Event Loop instance.
+     */
+    public $loop;
+
+    /**
+     * @var CacheInterface|null Optional PSR-16 Cache instance for registry/state.
+     */
+    public $cache;
+
+    /**
+     * @var ContainerInterface PSR-11 DI Container for resolving handlers/dependencies.
+     */
+    public $container;
+
+    /**
+     * @var int Maximum number of items to return for list methods.
+     */
+    public $paginationLimit;
+
+    /**
+     * @var string|null Instructions describing how to use the server and its features.
+     */
+    public $instructions;
+
+    /**
      * @param  Implementation  $serverInfo  Info about this MCP server application.
      * @param  ServerCapabilities  $capabilities  Capabilities of this MCP server application.
      * @param  LoggerInterface  $logger  PSR-3 Logger instance.
@@ -29,13 +69,22 @@ class Configuration
      * @param  string|null  $instructions  Instructions describing how to use the server and its features.
      */
     public function __construct(
-        public readonly Implementation $serverInfo,
-        public readonly ServerCapabilities $capabilities,
-        public readonly LoggerInterface $logger,
-        public readonly LoopInterface $loop,
-        public readonly ?CacheInterface $cache,
-        public readonly ContainerInterface $container,
-        public readonly int $paginationLimit = 50,
-        public readonly ?string $instructions = null,
-    ) {}
+        Implementation $serverInfo,
+        ServerCapabilities $capabilities,
+        LoggerInterface $logger,
+        LoopInterface $loop,
+        $cache,
+        ContainerInterface $container,
+        $paginationLimit = 50,
+        $instructions = null
+    ) {
+        $this->serverInfo = $serverInfo;
+        $this->capabilities = $capabilities;
+        $this->logger = $logger;
+        $this->loop = $loop;
+        $this->cache = $cache;
+        $this->container = $container;
+        $this->paginationLimit = $paginationLimit;
+        $this->instructions = $instructions;
+    }
 }
